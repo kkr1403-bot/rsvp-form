@@ -39,13 +39,13 @@ body { background: #E7E5E4; }
   <div class="field">
     <label class="flabel"><span class="req">*</span> Смогу присутствовать</label>
     <div class="options" id="attend">
-      <div class="opt" onclick="pick('attend',this,'Да, буду')"><div class="opt-circle"><div class="opt-dot"></div></div>Да, буду</div>
-      <div class="opt" onclick="pick('attend',this,'К сожалению, не смогу')"><div class="opt-circle"><div class="opt-dot"></div></div>К сожалению, не смогу</div>
+      <div class="opt" onclick="pick('attend',this,'Да, буду');setAttending(true)"><div class="opt-circle"><div class="opt-dot"></div></div>Да, буду</div>
+      <div class="opt" onclick="pick('attend',this,'К сожалению, не смогу');setAttending(false)"><div class="opt-circle"><div class="opt-dot"></div></div>К сожалению, не смогу</div>
     </div>
     <div class="err" id="err-attend">Пожалуйста, выберите вариант</div>
   </div>
 
-  <div class="field">
+  <div class="field" id="field-food">
     <label class="flabel"><span class="req">*</span> Предпочтения по еде</label>
     <div class="options" id="food">
       <div class="opt" onclick="pick('food',this,'Мясо')"><div class="opt-circle"><div class="opt-dot"></div></div>Мясо</div>
@@ -55,7 +55,7 @@ body { background: #E7E5E4; }
     <div class="err" id="err-food">Пожалуйста, выберите вариант</div>
   </div>
 
-  <div class="field">
+  <div class="field" id="field-alcohol">
     <label class="flabel"><span class="req">*</span> Алкоголь на банкете</label>
     <div class="options" id="alcohol">
       <div class="opt" onclick="pick('alcohol',this,'Буду пить')"><div class="opt-circle"><div class="opt-dot"></div></div>Буду пить</div>
@@ -64,13 +64,13 @@ body { background: #E7E5E4; }
     <div class="err" id="err-alcohol">Пожалуйста, выберите вариант</div>
   </div>
 
-  <div class="field">
+  <div class="field" id="field-drinks">
     <label class="flabel"><span class="req">*</span> Предпочтения по напиткам</label>
     <input type="text" id="drinks" class="text-input" />
     <div class="err" id="err-drinks">Пожалуйста, укажите предпочтения</div>
   </div>
 
-  <div class="field">
+  <div class="field" id="field-transfer">
     <label class="flabel"><span class="req">*</span> Нужен ли трансфер от «Мира у озера» после банкета (22:00–22:30)</label>
     <div class="options" id="transfer">
       <div class="opt" onclick="pick('transfer',this,'Да, нужен');showMetro(true)"><div class="opt-circle"><div class="opt-dot"></div></div>Да, нужен</div>
@@ -109,25 +109,48 @@ function showMetro(show) {
   }
 }
 
+let isAttending = true;
+
+function setAttending(attending) {
+  isAttending = attending;
+  ['field-food', 'field-alcohol', 'field-drinks', 'field-transfer'].forEach(id => {
+    document.getElementById(id).style.display = attending ? 'block' : 'none';
+  });
+  if (!attending) {
+    document.getElementById('metro-field').style.display = 'none';
+    ['err-food', 'err-alcohol', 'err-drinks', 'err-transfer', 'err-metro'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  }
+}
+
 function submitForm() {
   let ok = true;
 
-  ['attend', 'food', 'alcohol', 'transfer'].forEach(g => {
-    const hasErr = !vals[g];
-    document.getElementById('err-' + g).style.display = hasErr ? 'block' : 'none';
-    if (hasErr) ok = false;
-  });
+  const hasErrAttend = !vals['attend'];
+  document.getElementById('err-attend').style.display = hasErrAttend ? 'block' : 'none';
+  if (hasErrAttend) ok = false;
 
-  ['name', 'drinks'].forEach(id => {
-    const hasErr = !document.getElementById(id).value.trim();
-    document.getElementById('err-' + id).style.display = hasErr ? 'block' : 'none';
-    if (hasErr) ok = false;
-  });
+  const hasErrName = !document.getElementById('name').value.trim();
+  document.getElementById('err-name').style.display = hasErrName ? 'block' : 'none';
+  if (hasErrName) ok = false;
 
-  if (vals['transfer'] === 'Да, нужен') {
-    const hasErr = !document.getElementById('metro').value.trim();
-    document.getElementById('err-metro').style.display = hasErr ? 'block' : 'none';
-    if (hasErr) ok = false;
+  if (isAttending) {
+    ['food', 'alcohol', 'transfer'].forEach(g => {
+      const hasErr = !vals[g];
+      document.getElementById('err-' + g).style.display = hasErr ? 'block' : 'none';
+      if (hasErr) ok = false;
+    });
+
+    const hasErrDrinks = !document.getElementById('drinks').value.trim();
+    document.getElementById('err-drinks').style.display = hasErrDrinks ? 'block' : 'none';
+    if (hasErrDrinks) ok = false;
+
+    if (vals['transfer'] === 'Да, нужен') {
+      const hasErr = !document.getElementById('metro').value.trim();
+      document.getElementById('err-metro').style.display = hasErr ? 'block' : 'none';
+      if (hasErr) ok = false;
+    }
   }
 
   if (!ok) return;
